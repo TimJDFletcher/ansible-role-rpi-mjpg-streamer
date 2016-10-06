@@ -10,6 +10,12 @@
   - cmake
   - libjpeg8-dev
 
+#- name: Gather current gpu_mem
+#  command: awk 'BEGIN {FS="="} /gpu_mem/ {print $2}' /boot/config.txt
+#  register: current_gpu_mem
+#
+# FIXME: Test for gpu_mem > 128 and allow don't change this
+
 - name: Remove lines with start_x or gpu_mem
   become: true
   lineinfile: 
@@ -40,12 +46,7 @@
   when: camera_enabled.changed
 
 - name: waiting for host to come back
-  local_action: 
-    wait_for host: "{{ inventory_hostname }}"
-    state: started
-    port: 22 
-    delay: 15 
-    timeout: 300
+  local_action: wait_for host="{{ inventory_hostname }}" state=started port=22 delay=15 timeout=300
   when: camera_enabled.changed
 
 - name: Create directory for git
