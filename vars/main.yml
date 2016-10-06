@@ -1,0 +1,5 @@
+---
+mjpg:
+  path: /opt/mjpg-streamer
+  git_uri: "https://github.com/jacksonliam/mjpg-streamer"
+  branch: master

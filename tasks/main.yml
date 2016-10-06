@@ -1,0 +1,88 @@
+---
+- name: Install packages
+  become: true
+  apt:
+    state: latest
+    name: "{{ item }}"
+  with_items:
+  - build-essential
+  - git
+  - cmake
+  - libjpeg8-dev
+
+- name: Remove lines with start_x or gpu_mem
+  become: true
+  lineinfile: 
+    dest: /boot/config.txt
+    regexp: "{{ item }}"
+    state: absent
+  with_items:
+  - ^gpu_mem=(?!128)
+  - ^start_x=(?!1)
+
+- name: Enable rpi camera module
+  become: true
+  lineinfile:
+    line: "{{ item }}"
+    insertafter: EOF
+    dest: /boot/config.txt
+  with_items:
+  - start_x=1
+  - gpu_mem=128
+  register: camera_enabled
+
+- name: restart to load camera module
+  shell: shutdown -r now "Ansible triggered reboot for camera module"
+  async: 1
+  poll: 0
+  become: true
+  ignore_errors: true
+  when: camera_enabled.changed
+
+- name: waiting for host to come back
+  local_action: 
+    wait_for host: "{{ inventory_hostname }}"
+    state: started
+    port: 22 
+    delay: 15 
+    timeout: 300
+  when: camera_enabled.changed
+
+- name: Create directory for git
+  become: true
+  file: 
+    dest: "{{ mjpg.path }}"
+    state: directory
+    owner: pi
+    group: pi
+    mode: 0755
+
+- name: Pull latest git source
+  git:
+    repo: "{{ mjpg.git_uri }}"
+    dest: "{{ mjpg.path }}"
+    version: "{{ mjpg.branch }}"
+  register: checkout
+
+- name: Build mjpg-streamer
+  command: make
+  args:
+    chdir: "{{ mjpg.path }}/mjpg-streamer-experimental"
+  when: checkout.changed
+
+- name: Template over systemd service file
+  template:
+    src: mjpg-streamer.j2
+    dest: /etc/systemd/system/mjpg-streamer.service
+    owner: root
+    group: root
+    mode: 0440
+  become: true
+
+- name: Start mjpg streamer
+  service: 
+    state: started
+    name: mjpg-streamer
+    enabled: true
+  become: true
+
