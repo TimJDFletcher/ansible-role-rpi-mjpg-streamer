@@ -49,13 +49,22 @@
   local_action: wait_for host="{{ inventory_hostname }}" state=started port=22 delay=15 timeout=300
   when: camera_enabled.changed
 
+- name: Template over systemd service file
+  template:
+    src: mjpg-streamer.j2
+    dest: /etc/systemd/system/mjpg-streamer.service
+    owner: root
+    group: root
+    mode: 0440
+  become: true
+
 - name: Create directory for git
   become: true
   file: 
     dest: "{{ mjpg.path }}"
     state: directory
-    owner: pi
-    group: pi
+    owner: "{{ mjpg.user }}"
+    group: "{{ mjpg.group }}"
     mode: 0755
 
 - name: Pull latest git source
@@ -65,20 +74,19 @@
     version: "{{ mjpg.branch }}"
   register: checkout
 
+- name: Shutdown service before source build
+  service: 
+    state: stopped
+    name: mjpg-streamer
+    enabled: true
+  become: true
+  when: checkout.changed
+
 - name: Build mjpg-streamer
   command: make
   args:
     chdir: "{{ mjpg.path }}/mjpg-streamer-experimental"
   when: checkout.changed
-
-- name: Template over systemd service file
-  template:
-    src: mjpg-streamer.j2
-    dest: /etc/systemd/system/mjpg-streamer.service
-    owner: root
-    group: root
-    mode: 0440
-  become: true
 
 - name: Start mjpg streamer
   service: 
