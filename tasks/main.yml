@@ -14,7 +14,7 @@
 #  command: awk 'BEGIN {FS="="} /gpu_mem/ {print $2}' /boot/config.txt
 #  register: current_gpu_mem
 #
-# FIXME: Test for gpu_mem > 128 and allow don't change this
+# FIXME: Test for gpu_mem > 128 and don't change in that case
 
 - name: Remove lines with start_x or gpu_mem
   become: true
@@ -55,7 +55,7 @@
     dest: /etc/systemd/system/mjpg-streamer.service
     owner: root
     group: root
-    mode: 0440
+    mode: 0444
   become: true
 
 - name: Create directory for git

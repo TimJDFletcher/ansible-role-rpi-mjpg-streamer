@@ -5,3 +5,7 @@ mjpg:
   branch: master
   user: pi
   group: pi
+  width: 1080
+  height: 720
+  fps: 5
+  rot: 270

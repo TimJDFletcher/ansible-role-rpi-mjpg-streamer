@@ -2,7 +2,8 @@
 Description=MJPG Streamer
  
 [Service]
-ExecStart={{ mjpg.path }}/mjpg-streamer-experimental/mjpg_streamer -o "{{ mjpg.path }}/mjpg-streamer-experimental//output_http.so -w {{ mjpg.path }}/mjpg-streamer-experimental/www" -i "{{ mjpg.path }}/mjpg-streamer-experimental/input_raspicam.so -x 1280 -y 720 -fps 5"
+ExecStart={{ mjpg.path }}/mjpg-streamer-experimental/mjpg_streamer -o "{{ mjpg.path }}/mjpg-streamer-experimental/output_http.so -w {{ mjpg.path }}/mjpg-streamer-experimental/www" -i "{{ mjpg.path }}/mjpg-streamer-experimental/input_raspicam.so --width {{ mjpg.width }} --height {{ mjpg.height }} -fps {{ mjpg.fps }} -rot {{ mjpg.rot }}"
+User={{ mjpg.user }}
  
 [Install]
 WantedBy=multi-user.target
