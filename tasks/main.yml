@@ -36,7 +36,16 @@
   - start_x=1
   - gpu_mem=128
   register: camera_enabled
-
+  
+- name: Disable LED
+  become: true
+  lineinfile: 
+    dest: /boot/config.txt
+    regexp: "^disable_camera_led="
+    line: "disable_camera_led=1"
+    state: present
+  register: camera_enabled
+  
 - name: restart to load camera module
   shell: shutdown -r now "Ansible triggered reboot for camera module"
   async: 1
