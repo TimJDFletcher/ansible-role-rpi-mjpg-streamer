@@ -90,6 +90,7 @@
     enabled: true
   become: true
   when: checkout.changed
+  ignore_errors: yes
 
 - name: Build mjpg-streamer
   command: make
@@ -97,7 +98,7 @@
     chdir: "{{ mjpg.path }}/mjpg-streamer-experimental"
   when: checkout.changed
 
-- name: Start mjpg streamer
+- name: Start mjpg-streamer and set service to autostart
   service: 
     state: started
     name: mjpg-streamer
