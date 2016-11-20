@@ -2,7 +2,7 @@
 - name: Install packages
   become: true
   apt:
-    state: latest
+    state: installed
     name: "{{ item }}"
   with_items:
   - build-essential
