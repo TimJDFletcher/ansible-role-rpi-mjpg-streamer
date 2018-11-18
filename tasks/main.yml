@@ -3,12 +3,13 @@
   become: true
   apt:
     state: installed
-    name: "{{ item }}"
-  with_items:
-  - build-essential
-  - git
-  - cmake
-  - libjpeg8-dev
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - build-essential
+    - git
+    - cmake
+    - libjpeg8-dev
 
 #- name: Gather current gpu_mem
 #  command: awk 'BEGIN {FS="="} /gpu_mem/ {print $2}' /boot/config.txt
@@ -18,7 +19,7 @@
 
 - name: Remove lines with start_x or gpu_mem
   become: true
-  lineinfile: 
+  lineinfile:
     dest: /boot/config.txt
     regexp: "{{ item }}"
     state: absent
@@ -36,16 +37,16 @@
   - start_x=1
   - gpu_mem=128
   register: camera_enabled
-  
+
 - name: Disable LED
   become: true
-  lineinfile: 
+  lineinfile:
     dest: /boot/config.txt
     regexp: "^disable_camera_led="
     line: "disable_camera_led=1"
     state: present
   register: camera_enabled
-  
+
 - name: restart to load camera module
   shell: shutdown -r now "Ansible triggered reboot for camera module"
   async: 1
@@ -69,7 +70,7 @@
 
 - name: Create directory for git
   become: true
-  file: 
+  file:
     dest: "{{ mjpg.path }}"
     state: directory
     owner: "{{ mjpg.user }}"
@@ -84,7 +85,7 @@
   register: checkout
 
 - name: Shutdown service before source build
-  service: 
+  service:
     state: stopped
     name: mjpg-streamer
     enabled: true
@@ -99,7 +100,7 @@
   when: checkout.changed
 
 - name: Start mjpg-streamer and set service to autostart
-  service: 
+  service:
     state: started
     name: mjpg-streamer
     enabled: true
